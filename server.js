@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
@@ -18,27 +19,43 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Servir archivos estáticos PRIMERO (antes de cualquier otra configuración)
-app.use(express.static('.', {
-    setHeaders: (res, path) => {
-        console.log('📁 Sirviendo archivo estático:', path);
-        if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-            console.log('✅ JavaScript detectado, MIME type establecido');
-        } else if (path.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        } else if (path.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html');
+// Servir archivos estáticos - Configuración simplificada para Vercel
+app.use(express.static(path.join(__dirname), {
+    setHeaders: (res, filePath) => {
+        // En desarrollo local, mantener los logs
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('📁 Sirviendo archivo estático:', filePath);
         }
-    }
+        
+        if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('✅ JavaScript detectado, MIME type establecido correctamente');
+            }
+        } else if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+        } else if (filePath.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+        }
+    },
+    index: false // Evitar que express.static trate de servir index.html automáticamente
 }));
 
-// Middleware para debuggear solicitudes de archivos JS
+// Middleware para debuggear solicitudes de archivos JS (solo en desarrollo)
 app.use((req, res, next) => {
-    if (req.path.endsWith('.js')) {
+    if (req.path.endsWith('.js') && process.env.NODE_ENV !== 'production') {
         console.log('🔍 Solicitud de archivo JS:', req.path);
         console.log('🔍 Método:', req.method);
-        console.log('🔍 Headers:', req.headers);
+        console.log('🔍 Accept Header:', req.headers.accept);
+        
+        // Verificar si el archivo existe
+        const fullPath = path.join(__dirname, req.path);
+        if (fs.existsSync(fullPath)) {
+            console.log('✅ Archivo encontrado en:', fullPath);
+        } else {
+            console.log('❌ Archivo NO encontrado en:', fullPath);
+        }
     }
     next();
 });

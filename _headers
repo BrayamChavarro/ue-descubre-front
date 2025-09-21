@@ -1,0 +1,15 @@
+# Headers para archivos JavaScript
+/*.js
+  Content-Type: application/javascript; charset=UTF-8
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=31536000, immutable
+
+# Headers para archivos CSS  
+/*.css
+  Content-Type: text/css; charset=UTF-8
+  Cache-Control: public, max-age=31536000, immutable
+
+# Headers para archivos HTML
+/*.html
+  Content-Type: text/html; charset=UTF-8
+  Cache-Control: public, max-age=0, must-revalidate
