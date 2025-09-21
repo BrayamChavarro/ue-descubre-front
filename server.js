@@ -62,13 +62,20 @@ const requireAuth = (req, res, next) => {
 
 // Conectar a MongoDB
 mongoose.connect(config.MONGODB_URI, {
-    dbName: config.DB_NAME
+    dbName: config.DB_NAME,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
 })
 .then(() => {
     console.log('✅ Conectado a MongoDB exitosamente');
+    console.log('📊 Base de datos:', config.DB_NAME);
+    console.log('🌍 Entorno:', config.NODE_ENV);
 })
 .catch((error) => {
     console.error('❌ Error conectando a MongoDB:', error);
+    console.error('🔗 URI utilizada:', config.MONGODB_URI.replace(/\/\/.*@/, '//***:***@'));
     process.exit(1);
 });
 
@@ -249,7 +256,9 @@ app.post('/api/estudiantes/registro', async (req, res) => {
 // Obtener todos los estudiantes (para el panel de admin)
 app.get('/api/estudiantes', requireAuth, async (req, res) => {
     try {
+        console.log('📊 Solicitando lista de estudiantes...');
         const { page = 1, limit = 20, archetype, fechaDesde, fechaHasta } = req.query;
+        console.log('🔍 Parámetros recibidos:', { page, limit, archetype, fechaDesde, fechaHasta });
         
         // Construir filtros
         const filtros = {};
@@ -275,6 +284,12 @@ app.get('/api/estudiantes', requireAuth, async (req, res) => {
             .select('-__v');
 
         const total = await Estudiante.countDocuments(filtros);
+
+        console.log('📊 Resultados de la consulta:');
+        console.log('   - Estudiantes encontrados:', estudiantes.length);
+        console.log('   - Total en la base de datos:', total);
+        console.log('   - Página actual:', page);
+        console.log('   - Límite por página:', limit);
 
         res.json({
             success: true,
