@@ -17,6 +17,8 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+
+// Servir archivos estáticos PRIMERO (antes de cualquier otra configuración)
 app.use(express.static('.', {
     setHeaders: (res, path) => {
         if (path.endsWith('.js')) {
