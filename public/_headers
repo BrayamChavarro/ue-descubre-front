@@ -1,4 +1,11 @@
-# Headers para archivos JavaScript
+# Headers de seguridad y optimización para Vercel
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Headers específicos para archivos JavaScript
 /*.js
   Content-Type: application/javascript; charset=UTF-8
   X-Content-Type-Options: nosniff

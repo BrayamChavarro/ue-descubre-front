@@ -2,89 +2,80 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/admin-dashboard.js",
-      "dest": "/admin-dashboard.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/admin.js",
-      "dest": "/admin.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/script.js",
-      "dest": "/script.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/estudiantes.js",
-      "dest": "/estudiantes.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/estadisticas.js",
-      "dest": "/estadisticas.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/configuraciones.js",
-      "dest": "/configuraciones.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/createAdmin.js",
-      "dest": "/createAdmin.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/styles.css",
-      "dest": "/styles.css",
-      "headers": {
-        "Content-Type": "text/css; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/(.*\\.(js|css|html|png|jpg|jpeg|gif|svg|ico))$",
-      "dest": "/$1",
+      "src": "/(.*\\.(js|css|html|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))$",
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
       }
     },
     {
+      "src": "/admin-dashboard\\.js",
+      "headers": {
+        "Content-Type": "application/javascript; charset=UTF-8"
+      }
+    },
+    {
+      "src": "/admin\\.js",
+      "headers": {
+        "Content-Type": "application/javascript; charset=UTF-8"
+      }
+    },
+    {
+      "src": "/script\\.js",
+      "headers": {
+        "Content-Type": "application/javascript; charset=UTF-8"
+      }
+    },
+    {
+      "src": "/estudiantes\\.js",
+      "headers": {
+        "Content-Type": "application/javascript; charset=UTF-8"
+      }
+    },
+    {
+      "src": "/estadisticas\\.js",
+      "headers": {
+        "Content-Type": "application/javascript; charset=UTF-8"
+      }
+    },
+    {
+      "src": "/configuraciones\\.js",
+      "headers": {
+        "Content-Type": "application/javascript; charset=UTF-8"
+      }
+    },
+    {
+      "src": "/createAdmin\\.js",
+      "headers": {
+        "Content-Type": "application/javascript; charset=UTF-8"
+      }
+    },
+    {
+      "src": "/styles\\.css",
+      "headers": {
+        "Content-Type": "text/css; charset=UTF-8"
+      }
+    },
+    {
       "src": "/api/(.*)",
-      "dest": "server.js"
+      "dest": "api/index.js"
+    },
+    {
+      "src": "/admin/login",
+      "dest": "api/index.js"
     },
     {
       "src": "/admin/(.*)",
-      "dest": "server.js"
+      "dest": "api/index.js"
     },
     {
       "src": "/",
-      "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "api/index.js"
     }
   ],
   "env": {

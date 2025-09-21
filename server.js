@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const config = require('./config');
@@ -19,60 +18,48 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Servir archivos estáticos - Configuración simplificada para Vercel
-app.use(express.static(path.join(__dirname), {
-    setHeaders: (res, filePath) => {
-        // En desarrollo local, mantener los logs
-        if (process.env.NODE_ENV !== 'production') {
-            console.log('📁 Sirviendo archivo estático:', filePath);
+// Servir archivos estáticos PRIMERO (antes de cualquier otra configuración)
+app.use(express.static('.', {
+    setHeaders: (res, path) => {
+        console.log('📁 Sirviendo archivo estático:', path);
+        if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+            console.log('✅ JavaScript detectado, MIME type establecido');
+        } else if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (path.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html');
         }
-        
-        if (filePath.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
-            res.setHeader('X-Content-Type-Options', 'nosniff');
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('✅ JavaScript detectado, MIME type establecido correctamente');
-            }
-        } else if (filePath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css; charset=UTF-8');
-        } else if (filePath.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html; charset=UTF-8');
-        }
-    },
-    index: false // Evitar que express.static trate de servir index.html automáticamente
+    }
 }));
 
-// Middleware para debuggear solicitudes de archivos JS (solo en desarrollo)
+// Middleware para debuggear solicitudes de archivos JS
 app.use((req, res, next) => {
-    if (req.path.endsWith('.js') && process.env.NODE_ENV !== 'production') {
+    if (req.path.endsWith('.js')) {
         console.log('🔍 Solicitud de archivo JS:', req.path);
         console.log('🔍 Método:', req.method);
-        console.log('🔍 Accept Header:', req.headers.accept);
-        
-        // Verificar si el archivo existe
-        const fullPath = path.join(__dirname, req.path);
-        if (fs.existsSync(fullPath)) {
-            console.log('✅ Archivo encontrado en:', fullPath);
-        } else {
-            console.log('❌ Archivo NO encontrado en:', fullPath);
-        }
+        console.log('🔍 Headers:', req.headers);
     }
     next();
 });
 
-// Configuración de sesiones
+// Configuración de sesiones optimizada para Vercel
 app.use(session({
-    secret: 'tu-futuro-dual-secret-key-2024',
+    secret: config.SESSION_SECRET || 'tu-futuro-dual-secret-key-2024',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false, // Cambiar a true en producción con HTTPS
+        secure: config.NODE_ENV === 'production', // true en producción con HTTPS
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 horas
-    }
+        maxAge: 24 * 60 * 60 * 1000, // 24 horas
+        sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax'
+    },
+    // Para Vercel, usar configuración más compatible
+    proxy: config.NODE_ENV === 'production',
+    name: 'sessionId'
 }));
 
-// Rate limiting para login
+// Rate limiting para login optimizado para Vercel
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
     max: 5, // máximo 5 intentos por IP
@@ -82,6 +69,11 @@ const loginLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
+    // Configuración específica para Vercel
+    trustProxy: config.NODE_ENV === 'production',
+    keyGenerator: (req) => {
+        return req.ip || req.connection.remoteAddress || 'unknown';
+    }
 });
 
 // Middleware de autenticación
@@ -101,23 +93,54 @@ const requireAuth = (req, res, next) => {
     }
 };
 
-// Conectar a MongoDB
-mongoose.connect(config.MONGODB_URI, {
-    dbName: config.DB_NAME,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-})
-.then(() => {
-    console.log('✅ Conectado a MongoDB exitosamente');
-    console.log('📊 Base de datos:', config.DB_NAME);
-    console.log('🌍 Entorno:', config.NODE_ENV);
-})
-.catch((error) => {
-    console.error('❌ Error conectando a MongoDB:', error);
-    console.error('🔗 URI utilizada:', config.MONGODB_URI.replace(/\/\/.*@/, '//***:***@'));
-    process.exit(1);
+// Conectar a MongoDB con manejo optimizado para Vercel
+let isConnected = false;
+
+const connectToDatabase = async () => {
+    if (isConnected) {
+        console.log('📊 Reutilizando conexión existente a MongoDB');
+        return;
+    }
+    
+    try {
+        await mongoose.connect(config.MONGODB_URI, {
+            dbName: config.DB_NAME,
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+            bufferCommands: false, // Deshabilitar buffering para serverless
+            bufferMaxEntries: 0
+        });
+        
+        isConnected = true;
+        console.log('✅ Conectado a MongoDB exitosamente');
+        console.log('📊 Base de datos:', config.DB_NAME);
+        console.log('🌍 Entorno:', config.NODE_ENV);
+    } catch (error) {
+        console.error('❌ Error conectando a MongoDB:', error);
+        console.error('🔗 URI utilizada:', config.MONGODB_URI.replace(/\/\/.*@/, '//***:***@'));
+        throw error;
+    }
+};
+
+// Middleware para asegurar conexión a la base de datos en cada request
+app.use(async (req, res, next) => {
+    try {
+        await connectToDatabase();
+        next();
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error de conexión a la base de datos'
+        });
+    }
+});
+
+// Manejar desconexiones
+mongoose.connection.on('disconnected', () => {
+    console.log('📊 MongoDB desconectado');
+    isConnected = false;
 });
 
 // Rutas de la API
@@ -502,8 +525,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
-    console.log(`📊 Panel de administración: http://localhost:${PORT}/admin`);
-});
+// Iniciar servidor solo en desarrollo local
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+        console.log(`📊 Panel de administración: http://localhost:${PORT}/admin`);
+    });
+}
+
+// Exportar la aplicación para Vercel
+module.exports = app;
