@@ -21,8 +21,10 @@ app.use(express.json());
 // Servir archivos estáticos PRIMERO (antes de cualquier otra configuración)
 app.use(express.static('.', {
     setHeaders: (res, path) => {
+        console.log('📁 Sirviendo archivo estático:', path);
         if (path.endsWith('.js')) {
             res.setHeader('Content-Type', 'application/javascript');
+            console.log('✅ JavaScript detectado, MIME type establecido');
         } else if (path.endsWith('.css')) {
             res.setHeader('Content-Type', 'text/css');
         } else if (path.endsWith('.html')) {
@@ -30,6 +32,16 @@ app.use(express.static('.', {
         }
     }
 }));
+
+// Middleware para debuggear solicitudes de archivos JS
+app.use((req, res, next) => {
+    if (req.path.endsWith('.js')) {
+        console.log('🔍 Solicitud de archivo JS:', req.path);
+        console.log('🔍 Método:', req.method);
+        console.log('🔍 Headers:', req.headers);
+    }
+    next();
+});
 
 // Configuración de sesiones
 app.use(session({
