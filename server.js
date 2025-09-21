@@ -17,8 +17,17 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-app.use(express.static('public'));
-app.use(express.static('.'));
+app.use(express.static('.', {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (path.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html');
+        }
+    }
+}));
 
 // Configuración de sesiones
 app.use(session({
