@@ -1,7 +1,7 @@
 {
   "name": "ue-descubre-backend",
   "version": "1.0.0",
-  "description": "Backend para la aplicación Tu Futuro Dual de Uniempresarial",
+  "description": "Backend para la aplicación Tu Futuro Dual de Uniempresarial - Deployed on Vercel",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
