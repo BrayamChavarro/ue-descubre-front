@@ -109,8 +109,7 @@ const connectToDatabase = async () => {
             useUnifiedTopology: true,
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 45000,
-            bufferCommands: false, // Deshabilitar buffering para serverless
-            bufferMaxEntries: 0
+            bufferCommands: false // Deshabilitar buffering para serverless
         });
         
         isConnected = true;
@@ -141,6 +140,13 @@ app.use(async (req, res, next) => {
 mongoose.connection.on('disconnected', () => {
     console.log('📊 MongoDB desconectado');
     isConnected = false;
+});
+
+// Middleware de logging para debugging en Vercel
+app.use((req, res, next) => {
+    console.log(`📊 ${req.method} ${req.path} - IP: ${req.ip}`);
+    console.log(`📊 User-Agent: ${req.get('User-Agent')?.substring(0, 50)}...`);
+    next();
 });
 
 // Rutas de la API
@@ -490,8 +496,20 @@ app.delete('/api/estudiantes/:id', requireAuth, async (req, res) => {
 // Los endpoints de gestión de administradores han sido removidos
 
 // Ruta para servir el panel de administración
-app.get('/admin', requireAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+app.get('/admin', (req, res) => {
+    console.log('📊 Acceso a /admin - Verificando autenticación');
+    console.log('📊 Sesión presente:', !!req.session);
+    console.log('📊 Admin ID en sesión:', req.session?.adminId);
+    
+    // Verificar autenticación antes de servir el panel
+    if (req.session && req.session.adminId) {
+        console.log('📊 Usuario autenticado, sirviendo panel admin');
+        res.sendFile(path.join(__dirname, 'admin.html'));
+    } else {
+        console.log('📊 Usuario no autenticado, redirigiendo a login');
+        // Redirigir al login si no está autenticado
+        res.redirect('/admin/login');
+    }
 });
 
 app.get('/admin/estudiantes', requireAuth, (req, res) => {
@@ -508,11 +526,13 @@ app.get('/admin/configuraciones', requireAuth, (req, res) => {
 
 // Ruta para servir la página de login
 app.get('/admin/login', (req, res) => {
+    console.log('📊 Acceso a /admin/login - Sirviendo página de login');
     res.sendFile(path.join(__dirname, 'login.html'));
 });
 
 // Ruta principal - servir la aplicación principal
 app.get('/', (req, res) => {
+    console.log('📊 Acceso a / - Sirviendo página principal');
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
