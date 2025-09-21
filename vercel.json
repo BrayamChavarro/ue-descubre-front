@@ -8,58 +8,36 @@
   ],
   "routes": [
     {
-      "src": "/(.*\\.(js|css|html|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))$",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
+      "src": "/admin-dashboard\\.js$",
+      "dest": "api/index.js"
     },
     {
-      "src": "/admin-dashboard\\.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
+      "src": "/admin\\.js$",
+      "dest": "api/index.js"
     },
     {
-      "src": "/admin\\.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
+      "src": "/script\\.js$",
+      "dest": "api/index.js"
     },
     {
-      "src": "/script\\.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
+      "src": "/estudiantes\\.js$",
+      "dest": "api/index.js"
     },
     {
-      "src": "/estudiantes\\.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
+      "src": "/estadisticas\\.js$",
+      "dest": "api/index.js"
     },
     {
-      "src": "/estadisticas\\.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
+      "src": "/configuraciones\\.js$",
+      "dest": "api/index.js"
     },
     {
-      "src": "/configuraciones\\.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
+      "src": "/createAdmin\\.js$",
+      "dest": "api/index.js"
     },
     {
-      "src": "/createAdmin\\.js",
-      "headers": {
-        "Content-Type": "application/javascript; charset=UTF-8"
-      }
-    },
-    {
-      "src": "/styles\\.css",
-      "headers": {
-        "Content-Type": "text/css; charset=UTF-8"
-      }
+      "src": "/styles\\.css$",
+      "dest": "api/index.js"
     },
     {
       "src": "/api/(.*)",

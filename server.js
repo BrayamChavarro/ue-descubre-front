@@ -19,18 +19,27 @@ app.use(cors({
 app.use(express.json());
 
 // Servir archivos estáticos PRIMERO (antes de cualquier otra configuración)
-app.use(express.static('.', {
-    setHeaders: (res, path) => {
-        console.log('📁 Sirviendo archivo estático:', path);
-        if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-            console.log('✅ JavaScript detectado, MIME type establecido');
-        } else if (path.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        } else if (path.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html');
+app.use(express.static(path.join(__dirname), {
+    setHeaders: (res, filePath) => {
+        // Log solo en desarrollo
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('📁 Sirviendo archivo estático:', filePath);
         }
-    }
+        
+        if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('✅ JavaScript detectado, MIME type establecido correctamente');
+            }
+        } else if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+        } else if (filePath.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+        }
+    },
+    index: false, // Evitar que express.static trate de servir index.html automáticamente
+    maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0
 }));
 
 // Middleware para debuggear solicitudes de archivos JS
@@ -147,6 +156,23 @@ app.use((req, res, next) => {
     console.log(`📊 ${req.method} ${req.path} - IP: ${req.ip}`);
     console.log(`📊 User-Agent: ${req.get('User-Agent')?.substring(0, 50)}...`);
     next();
+});
+
+// Ruta específica para archivos JavaScript estáticos (debugging)
+app.get('*.js', (req, res, next) => {
+    console.log(`🔧 Solicitud archivo JS: ${req.path}`);
+    const fs = require('fs');
+    const fullPath = path.join(__dirname, req.path);
+    
+    if (fs.existsSync(fullPath)) {
+        console.log(`✅ Archivo encontrado: ${fullPath}`);
+        res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.sendFile(fullPath);
+    } else {
+        console.log(`❌ Archivo NO encontrado: ${fullPath}`);
+        next();
+    }
 });
 
 // Rutas de la API
