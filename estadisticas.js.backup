@@ -18,21 +18,59 @@ const archetypeNames = {
     9: "Gestión del Talento Humano"
 };
 
-// Obtener colores desde el sistema global
-let careerColors = getCurrentCareerColors();
-
-// Escuchar cambios en los colores para actualizar gráficos
-onColorChange((newColors) => {
-    careerColors = newColors;
-    console.log('Colores actualizados en estadísticas:', careerColors);
-    
-    // Recargar estadísticas con nuevos colores
-    if (typeof loadStatistics === 'function') {
-        setTimeout(() => {
-            loadStatistics();
-        }, 100);
+// Colores representativos para cada carrera
+const careerColors = {
+    0: { // Administración de Empresas
+        primary: '#1e40af', // Azul corporativo
+        secondary: '#3b82f6',
+        light: '#dbeafe'
+    },
+    1: { // Finanzas y Comercio Exterior
+        primary: '#059669', // Verde financiero
+        secondary: '#10b981',
+        light: '#d1fae5'
+    },
+    2: { // Negocios Internacionales
+        primary: '#7c3aed', // Púrpura internacional
+        secondary: '#8b5cf6',
+        light: '#ede9fe'
+    },
+    3: { // Diseño de Producto
+        primary: '#dc2626', // Rojo creativo
+        secondary: '#ef4444',
+        light: '#fee2e2'
+    },
+    4: { // Marketing
+        primary: '#ea580c', // Naranja marketing
+        secondary: '#f97316',
+        light: '#fed7aa'
+    },
+    5: { // Ingeniería Industrial
+        primary: '#0891b2', // Cian industrial
+        secondary: '#06b6d4',
+        light: '#cffafe'
+    },
+    6: { // Ingeniería de Software
+        primary: '#0d9488', // Verde teal tecnológico
+        secondary: '#14b8a6',
+        light: '#ccfbf1'
+    },
+    7: { // Gestión Comercial
+        primary: '#be185d', // Rosa comercial
+        secondary: '#ec4899',
+        light: '#fce7f3'
+    },
+    8: { // Producción Industrial
+        primary: '#4338ca', // Índigo producción
+        secondary: '#6366f1',
+        light: '#e0e7ff'
+    },
+    9: { // Gestión del Talento Humano
+        primary: '#b45309', // Ámbar recursos humanos
+        secondary: '#d97706',
+        light: '#fef3c7'
     }
-});
+};
 
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', function() {
@@ -43,22 +81,25 @@ document.addEventListener('DOMContentLoaded', function() {
 // Verificar autenticación
 async function checkAuthentication() {
     try {
-        const result = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY, {
+        const response = await fetch('/api/auth/verify', {
             credentials: 'include'
         });
         
-        console.log('Resultado de verificación:', result);
+        if (!response.ok || !response.status === 200) {
+            window.location.href = '/admin/login';
+            return;
+        }
         
-        if (result && result.success && result.authenticated) {
+        const result = await response.json();
+        
+        if (result.success && result.authenticated) {
             loadStatistics();
             showUserInfo(result.data);
         } else {
-            console.log('No autenticado, redirigiendo al login');
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
         }
     } catch (error) {
-        console.error('Error en verificación:', error);
-        window.location.href = 'login.html';
+        window.location.href = '/admin/login';
     }
 }
 
@@ -72,13 +113,13 @@ function showUserInfo(userData) {
 // Función de logout
 async function logout() {
     try {
-        const response = await apiRequest(API_CONFIG.ENDPOINTS.LOGOUT, {
+        const response = await fetch('/api/auth/logout', {
             method: 'POST',
             credentials: 'include'
         });
         
         if (response.ok) {
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
         }
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
@@ -89,10 +130,18 @@ async function logout() {
 async function loadStatistics() {
     try {
         console.log('Cargando estadísticas...');
-        const result = await apiRequest(API_CONFIG.ENDPOINTS.ADMIN_STATS, {
+        const response = await fetch('/api/estadisticas', {
             credentials: 'include'
         });
         
+        console.log('Respuesta del servidor:', response.status);
+        console.log('Headers de respuesta:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const result = await response.json();
         console.log('Datos recibidos:', result);
         
         if (result.success) {
@@ -274,14 +323,15 @@ function createDistributionChart(ctx, data) {
 async function createTrendsChart(ctx, data) {
     try {
         // Obtener datos de estudiantes para calcular tendencias reales
-        const result = await apiRequest(`${API_CONFIG.ENDPOINTS.ESTUDIANTES}?limit=1000`, {
+        const response = await fetch('/api/estudiantes?limit=1000', {
             credentials: 'include'
         });
         
-        if (!result.success) {
+        if (!response.ok) {
             throw new Error('Error al cargar datos de estudiantes');
         }
         
+        const result = await response.json();
         const estudiantes = Array.isArray(result.data) ? result.data : (result.data.estudiantes || []);
         
         // Calcular tendencias por mes (últimos 6 meses)

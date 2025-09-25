@@ -19,248 +19,23 @@ const archetypeNames = {
     9: "Gestión del Talento Humano"
 };
 
-// Función para formatear fechas
-function formatDate(dateString) {
-    if (!dateString) return 'Fecha no disponible';
-    
-    try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffTime = Math.abs(now - date);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 1) {
-            return 'Hace 1 día';
-        } else if (diffDays < 7) {
-            return `Hace ${diffDays} días`;
-        } else if (diffDays < 30) {
-            const weeks = Math.floor(diffDays / 7);
-            return weeks === 1 ? 'Hace 1 semana' : `Hace ${weeks} semanas`;
-        } else {
-            return date.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-        }
-    } catch (error) {
-        return 'Fecha no válida';
-    }
-}
-
-// Cargar actividad reciente (últimos 5 estudiantes)
-async function loadRecentActivity() {
-    const activityContainer = document.getElementById('recent-activity');
-    if (!activityContainer) {
-        console.error('No se encontró el contenedor de actividad reciente');
-        return;
-    }
-
-    try {
-        console.log('Cargando actividad reciente...');
-        
-        // Verificar que API_CONFIG y apiRequest estén disponibles
-        if (!API_CONFIG || !API_CONFIG.ENDPOINTS || !API_CONFIG.ENDPOINTS.ESTUDIANTES) {
-            console.error('API_CONFIG no está disponible');
-            activityContainer.innerHTML = `
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-                    <p>Configuración de API no disponible</p>
-                </div>
-            `;
-            return;
-        }
-
-        if (typeof apiRequest !== 'function') {
-            console.error('apiRequest no está disponible');
-            activityContainer.innerHTML = `
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-                    <p>Función de API no disponible</p>
-                </div>
-            `;
-            return;
-        }
-
-        const result = await apiRequest(API_CONFIG.ENDPOINTS.ESTUDIANTES);
-        console.log('Datos de estudiantes para actividad reciente:', result);
-        
-        if (result.success && result.data && result.data.length > 0) {
-            console.log('📊 Total de estudiantes recibidos:', result.data.length);
-            
-            // Ordenar por fecha de creación (más recientes primero) y tomar los primeros 5
-            const recentStudents = result.data
-                .sort((a, b) => {
-                    const dateA = new Date(a.createdAt || a.fecha || a.fechaCompletado || a.timestamp || 0);
-                    const dateB = new Date(b.createdAt || b.fecha || b.fechaCompletado || b.timestamp || 0);
-                    return dateB - dateA;
-                })
-                .slice(0, 5);
-                
-            console.log('🔄 Estudiantes recientes seleccionados:', recentStudents.length);
-            
-            // Limpiar contenido existente
-            activityContainer.innerHTML = '';
-            
-            if (recentStudents.length === 0) {
-                activityContainer.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-user-clock text-4xl mb-4"></i>
-                        <p>No hay estudiantes registrados aún</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            console.log('📋 Primer estudiante de ejemplo:', recentStudents[0]);
-            
-            recentStudents.forEach((student, index) => {
-                console.log(`🔍 Procesando estudiante ${index + 1}:`, student);
-                
-                // Validar que el estudiante tenga al menos un nombre
-                const nombreEstudiante = student.nombre || student.name;
-                if (!nombreEstudiante) {
-                    console.warn('⚠️ Estudiante sin nombre, omitiendo:', student);
-                    return; // Saltar este estudiante
-                }
-                
-                // Intentar mapear diferentes posibles campos de arquetipo
-                const arquetipo = student.arquetipo || student.archetype || student.carrera || student.programa;
-                let programa = 'Test de orientación completado';
-                
-                if (arquetipo !== undefined && arquetipo !== null && arquetipo !== '') {
-                    programa = archetypeNames[arquetipo] || `Programa ${arquetipo}`;
-                }
-                
-                // Intentar mapear diferentes posibles campos de fecha
-                const fechaCreacion = student.createdAt || student.fecha || student.fechaCompletado || student.timestamp;
-                const fecha = formatDate(fechaCreacion);
-                
-                // Intentar mapear diferentes posibles campos de porcentaje
-                let porcentaje = student.porcentaje || student.percentage || student.compatibilidad;
-                
-                // Asegurar que el porcentaje sea un número válido
-                if (isNaN(porcentaje) || porcentaje === null || porcentaje === undefined) {
-                    porcentaje = Math.floor(Math.random() * 40) + 60; // Generar un porcentaje realista entre 60-100%
-                }
-                
-                console.log('🎯 Datos mapeados finales:', {
-                    nombre: nombreEstudiante,
-                    arquetipo,
-                    programa,
-                    fecha,
-                    porcentaje
-                });
-                
-                const activityItem = document.createElement('div');
-                activityItem.className = 'activity-item flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer';
-                activityItem.onclick = () => {
-                    if (student._id || student.id) {
-                        viewStudentDetails(student._id || student.id);
-                    } else {
-                        console.error('ID de estudiante no encontrado:', student);
-                    }
-                };
-                
-                activityItem.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <div class="activity-avatar w-10 h-10 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user-graduate text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-gray-900">${nombreEstudiante}</h4>
-                            <p class="text-sm text-gray-600">
-                                <i class="fas fa-graduation-cap mr-1"></i>
-                                ${programa}
-                            </p>
-                            <p class="text-xs text-gray-500">
-                                <i class="fas fa-chart-line mr-1"></i>
-                                ${Math.round(porcentaje)}% de compatibilidad
-                            </p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-medium text-gray-700">${fecha}</p>
-                        <p class="text-xs text-gray-500">
-                            <i class="fas fa-clock mr-1"></i>
-                            Test completado
-                        </p>
-                    </div>
-                `;
-                
-                activityContainer.appendChild(activityItem);
-            });
-            
-        } else {
-            activityContainer.innerHTML = `
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
-                    <p>Error al cargar la actividad reciente</p>
-                </div>
-            `;
-        }
-        
-    } catch (error) {
-        console.error('Error cargando actividad reciente:', error);
-        activityContainer.innerHTML = `
-            <div class="text-center py-8 text-gray-500">
-                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-                <p>Error al cargar la actividad reciente: ${error.message}</p>
-            </div>
-        `;
-    }
-}
-
 // Inicializar la aplicación
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM cargado, iniciando aplicación...');
-    
-    // Verificar que estamos en la página correcta
-    const pageTitle = document.title;
-    console.log('Página actual:', pageTitle);
-    
-    // Solo ejecutar funciones de admin si estamos en páginas de admin
-    if (pageTitle.includes('Panel de Administración') || pageTitle.includes('Admin')) {
-        checkAuthentication();
-    } else {
-        console.log('No es una página de admin, omitiendo inicialización de admin');
-    }
+    checkAuthentication();
 });
 
 // Verificar autenticación
 async function checkAuthentication() {
     try {
-        console.log('Verificando autenticación...');
         const result = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY);
-        console.log('Resultado de verificación:', result);
         
         if (result.success && result.authenticated) {
             // Usuario autenticado, cargar el panel
             console.log('Usuario autenticado, cargando datos...');
+            loadStatistics();
+            loadStudents();
             showUserInfo(result.data);
-            
-            // Solo cargar datos si los elementos existen
-            if (document.getElementById('total-estudiantes')) {
-                loadStatistics();
-            } else {
-                console.log('Elementos de estadísticas no encontrados, omitiendo carga');
-            }
-            
-            if (document.getElementById('estudiantes-table')) {
-                loadStudents();
-            } else {
-                console.log('Tabla de estudiantes no encontrada, omitiendo carga');
-            }
-            
-            // Cargar actividad reciente si el elemento existe
-            if (document.getElementById('recent-activity')) {
-                // Pequeño delay para asegurar que todo esté cargado
-                setTimeout(() => {
-                    loadRecentActivity();
-                }, 500);
-            } else {
-                console.log('Elemento de actividad reciente no encontrado, omitiendo carga');
-            }
         } else {
             // No autenticado, redirigir al login
             console.log('Usuario no autenticado, redirigiendo al login...');
@@ -268,7 +43,6 @@ async function checkAuthentication() {
         }
     } catch (error) {
         console.error('Error verificando autenticación:', error);
-        console.log('Redirigiendo al login debido al error...');
         window.location.href = 'login.html';
     }
 }
@@ -276,11 +50,8 @@ async function checkAuthentication() {
 // Mostrar información del usuario
 function showUserInfo(userData) {
     // Actualizar la información del usuario en el header
-    const usernameEl = document.getElementById('admin-username');
-    const roleEl = document.getElementById('admin-role');
-    
-    if (usernameEl) usernameEl.textContent = userData.username;
-    if (roleEl) roleEl.textContent = userData.role;
+    document.getElementById('admin-username').textContent = userData.username;
+    document.getElementById('admin-role').textContent = userData.role;
 }
 
 // Función de logout
@@ -312,25 +83,17 @@ async function loadStatistics() {
             console.log('Datos de estadísticas:', data);
             
             // Actualizar estadísticas generales
-            const totalEl = document.getElementById('total-estudiantes');
-            const ultimos30El = document.getElementById('estudiantes-30-dias');
-            const programaPopularEl = document.getElementById('programa-popular');
-            
-            if (totalEl) totalEl.textContent = data.totalEstudiantes || 0;
-            if (ultimos30El) ultimos30El.textContent = data.estudiantesUltimos30Dias || 0;
+            document.getElementById('total-estudiantes').textContent = data.totalEstudiantes;
+            document.getElementById('estudiantes-30-dias').textContent = data.estudiantesUltimos30Dias;
             
             // Programa más popular
             if (data.estadisticasArchetype && data.estadisticasArchetype.length > 0) {
                 const programaPopular = data.estadisticasArchetype[0];
-                if (programaPopularEl) programaPopularEl.textContent = programaPopular.programa || 'N/A';
+                document.getElementById('programa-popular').textContent = programaPopular.programa;
             }
             
-            // Crear el gráfico inicial solo si el canvas existe
-            if (document.getElementById('main-chart')) {
-                createChart(currentChartType, data);
-            } else {
-                console.log('Canvas main-chart no encontrado, omitiendo creación de gráfico');
-            }
+            // Crear el gráfico inicial
+            createChart(currentChartType, data);
         } else {
             console.error('Error en la respuesta:', result.message);
             showError('Error al cargar las estadísticas: ' + result.message);
@@ -1156,6 +919,7 @@ function showError(message) {
         errorDiv.style.display = 'none';
     }, 5000);
 }
+
 
 // Cerrar modal al hacer clic fuera
 document.getElementById('modal').addEventListener('click', function(e) {

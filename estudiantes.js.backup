@@ -25,22 +25,25 @@ document.addEventListener('DOMContentLoaded', function() {
 // Verificar autenticación
 async function checkAuthentication() {
     try {
-        const result = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY, {
+        const response = await fetch('/api/auth/verify', {
             credentials: 'include'
         });
         
-        console.log('Resultado de verificación:', result);
+        if (!response.ok || !response.status === 200) {
+            window.location.href = '/admin/login';
+            return;
+        }
         
-        if (result && result.success && result.authenticated) {
+        const result = await response.json();
+        
+        if (result.success && result.authenticated) {
             loadStudents();
             showUserInfo(result.data);
         } else {
-            console.log('No autenticado, redirigiendo al login');
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
         }
     } catch (error) {
-        console.error('Error en verificación:', error);
-        window.location.href = 'login.html';
+        window.location.href = '/admin/login';
     }
 }
 
@@ -54,13 +57,13 @@ function showUserInfo(userData) {
 // Función de logout
 async function logout() {
     try {
-        const response = await apiRequest(API_CONFIG.ENDPOINTS.LOGOUT, {
+        const response = await fetch('/api/auth/logout', {
             method: 'POST',
             credentials: 'include'
         });
         
         if (response.ok) {
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
         }
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
@@ -81,10 +84,17 @@ async function loadStudents(page = 1) {
         
         console.log('Parámetros de búsqueda:', params.toString());
         
-        const result = await apiRequest(`${API_CONFIG.ENDPOINTS.ESTUDIANTES}?${params}`, {
+        const response = await fetch(`/api/estudiantes?${params}`, {
             credentials: 'include'
         });
         
+        console.log('Respuesta del servidor:', response.status);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar estudiantes');
+        }
+        
+        const result = await response.json();
         console.log('Datos recibidos:', result);
         
         if (result.success) {
@@ -289,30 +299,25 @@ function clearFilters() {
 // Ver detalles de un estudiante
 async function viewStudentDetails(id) {
     try {
-        console.log('Cargando detalles del estudiante con ID:', id);
-        
-        if (!id || id === '' || id === 'undefined') {
-            showError('Error: ID de estudiante no válido');
-            return;
-        }
-        
-        const response = await apiRequest(`${API_CONFIG.ENDPOINTS.ESTUDIANTES}/${id}`, {
+        const response = await fetch(`/api/estudiantes/${id}`, {
             credentials: 'include'
         });
         
-        console.log('Respuesta recibida:', response);
+        if (!response.ok) {
+            throw new Error('Error al cargar detalles');
+        }
         
-        if (response && response.success && response.data) {
-            displayStudentModal(response.data);
-        } else if (response && !response.success) {
-            showError('Error al cargar los detalles: ' + (response.message || 'Error desconocido'));
+        const result = await response.json();
+        
+        if (result.success) {
+            displayStudentModal(result.data);
         } else {
-            showError('Error al cargar los detalles: Respuesta inválida del servidor');
+            showError('Error al cargar los detalles: ' + result.message);
         }
         
     } catch (error) {
         console.error('Error cargando detalles:', error);
-        showError('Error al cargar los detalles del estudiante: ' + error.message);
+        showError('Error al cargar los detalles del estudiante');
     }
 }
 
@@ -512,21 +517,43 @@ async function exportAllStudents() {
         console.log('Iniciando exportación de todos los estudiantes...');
         
         // Verificar autenticación primero
-        const authResult = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY, {
+        const authResponse = await fetch('/api/auth/verify', {
+            method: 'GET',
             credentials: 'include'
         });
         
-        if (!authResult || !authResult.success || !authResult.authenticated) {
+        if (!authResponse.ok || !authResponse.status === 200) {
             showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const authResult = await authResponse.json();
+        if (!authResult.success || !authResult.authenticated) {
+            showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
+            window.location.href = '/admin/login';
             return;
         }
         
         // Obtener todos los estudiantes sin filtros
-        const result = await apiRequest(`${API_CONFIG.ENDPOINTS.ESTUDIANTES}?limit=10000`, {
-            credentials: 'include'
+        const response = await fetch('/api/estudiantes?limit=10000', { 
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
+        if (!response.ok) {
+            if (response.status === 401) {
+                showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
+                window.location.href = '/admin/login';
+                return;
+            }
+            throw new Error(`Error al obtener datos de estudiantes: ${response.status}`);
+        }
+        
+        const result = await response.json();
         if (!result.success) throw new Error(result.message);
         
         const estudiantes = Array.isArray(result.data) ? result.data : (result.data.estudiantes || []);
@@ -552,27 +579,27 @@ async function exportFilteredStudents() {
         console.log('Iniciando exportación de estudiantes filtrados...');
         
         // Verificar autenticación primero
-        const authResponse = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY, {
+        const authResponse = await fetch('/api/auth/verify', {
             method: 'GET',
             credentials: 'include'
         });
         
         if (!authResponse.ok || !authResponse.status === 200) {
             showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
             return;
         }
         
         const authResult = await authResponse.json();
         if (!authResult.success || !authResult.authenticated) {
             showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
             return;
         }
         
         // Aplicar filtros actuales
         const params = new URLSearchParams({ limit: 10000, ...currentFilters });
-        const response = await apiRequest(`${API_CONFIG.ENDPOINTS.ESTUDIANTES}?${params}`, { 
+        const response = await fetch(`/api/estudiantes?${params}`, { 
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -580,16 +607,16 @@ async function exportFilteredStudents() {
             }
         });
         
-        if (false) { // apiRequest maneja errores automáticamente
-            if (200 === 401) {
+        if (!response.ok) {
+            if (response.status === 401) {
                 showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-                window.location.href = 'login.html';
+                window.location.href = '/admin/login';
                 return;
             }
-            throw new Error(`Error al obtener datos filtrados: ${200}`);
+            throw new Error(`Error al obtener datos filtrados: ${response.status}`);
         }
         
-        // Response ya parseado por apiRequest
+        const result = await response.json();
         if (!result.success) throw new Error(result.message);
         
         const estudiantes = Array.isArray(result.data) ? result.data : (result.data.estudiantes || []);
@@ -764,17 +791,7 @@ function storeDeleteData(studentId, studentName, studentEmail) {
 // Función auxiliar para obtener el ID del estudiante
 function getStudentId(estudiante) {
     // Intentar diferentes campos posibles para el ID
-    const id = estudiante._id || estudiante.id || estudiante.estudianteId || null;
-    console.log('🔍 getStudentId para estudiante:', {
-        estudiante,
-        idEncontrado: id,
-        campos: {
-            _id: estudiante._id,
-            id: estudiante.id,
-            estudianteId: estudiante.estudianteId
-        }
-    });
-    return id;
+    return estudiante._id || estudiante.id || estudiante.estudianteId || null;
 }
 
 // Función para eliminar un estudiante
@@ -865,21 +882,29 @@ async function confirmDelete() {
         console.log('🗑️ Eliminando estudiante:', studentIdToDelete);
         
         // Verificar autenticación
-        const authResult = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY, {
+        const authResponse = await fetch('/api/auth/verify', { 
+            method: 'GET', 
             credentials: 'include' 
         });
         
-        if (!authResult || !authResult.success || !authResult.authenticated) {
+        if (!authResponse.ok || !authResponse.status === 200) {
             showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const authResult = await authResponse.json();
+        if (!authResult.success || !authResult.authenticated) {
+            showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
+            window.location.href = '/admin/login';
             return;
         }
         
         // Realizar la eliminación
-        console.log('🔍 Justo antes de eliminar - studentIdToDelete:', studentIdToDelete);
-        console.log('🔍 URL que se va a llamar:', `${API_CONFIG.ENDPOINTS.ESTUDIANTES}/${studentIdToDelete}`);
+        console.log('🔍 Justo antes del fetch - studentIdToDelete:', studentIdToDelete);
+        console.log('🔍 URL que se va a llamar:', `/api/estudiantes/${studentIdToDelete}`);
         
-        const result = await apiRequest(`${API_CONFIG.ENDPOINTS.ESTUDIANTES}/${studentIdToDelete}`, {
+        const response = await fetch(`/api/estudiantes/${studentIdToDelete}`, {
             method: 'DELETE',
             credentials: 'include',
             headers: {
@@ -887,7 +912,16 @@ async function confirmDelete() {
             }
         });
         
-        console.log('🔍 Resultado de eliminación:', result);
+        if (!response.ok) {
+            if (response.status === 401) {
+                showError('Sesión expirada. Por favor, inicia sesión nuevamente.');
+                window.location.href = '/admin/login';
+                return;
+            }
+            throw new Error(`Error al eliminar estudiante: ${response.status}`);
+        }
+        
+        const result = await response.json();
         
         if (result.success) {
             showSuccess(`Estudiante "${studentNameToDelete}" eliminado exitosamente`);

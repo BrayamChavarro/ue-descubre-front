@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Eliminación de Estudiantes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        .success { color: green; background: #e8f5e8; padding: 10px; }
+        .error { color: red; background: #ffeaea; padding: 10px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Test de Eliminación de Estudiantes</h1>
+    
+    <div id="status"></div>
+    <div id="logs"></div>
+    
+    <script src="config.js"></script>
+    <script>
+        async function testAPI() {
+            const logs = document.getElementById('logs');
+            const status = document.getElementById('status');
+            
+            function log(message) {
+                console.log(message);
+                logs.innerHTML += `<div class="log">${message}</div>`;
+            }
+            
+            try {
+                // 1. Verificar autenticación
+                log('1. Verificando autenticación...');
+                const authResult = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY, {
+                    credentials: 'include'
+                });
+                log(`Autenticación: ${JSON.stringify(authResult)}`);
+                
+                if (!authResult || !authResult.success || !authResult.authenticated) {
+                    status.innerHTML = '<div class="error">No autenticado</div>';
+                    return;
+                }
+                
+                // 2. Obtener lista de estudiantes
+                log('2. Obteniendo estudiantes...');
+                const studentsResult = await apiRequest(`${API_CONFIG.ENDPOINTS.ESTUDIANTES}?limit=5`, {
+                    credentials: 'include'
+                });
+                log(`Estudiantes: ${JSON.stringify(studentsResult)}`);
+                
+                if (!studentsResult.success || !studentsResult.data || studentsResult.data.length === 0) {
+                    status.innerHTML = '<div class="error">No hay estudiantes para probar</div>';
+                    return;
+                }
+                
+                // 3. Probar eliminación (simulada)
+                const testStudent = studentsResult.data[0];
+                const studentId = testStudent._id || testStudent.id;
+                
+                log(`3. Probando eliminación del estudiante: ${studentId}`);
+                log(`Estudiante: ${testStudent.nombre} (${testStudent.email})`);
+                
+                // Solo mostrar la URL que se usaría, sin hacer la eliminación real
+                const deleteUrl = `${API_CONFIG.ENDPOINTS.ESTUDIANTES}/${studentId}`;
+                log(`URL de eliminación: ${deleteUrl}`);
+                
+                status.innerHTML = '<div class="success">API funcionando correctamente</div>';
+                
+            } catch (error) {
+                log(`Error: ${error.message}`);
+                status.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Ejecutar test al cargar
+        testAPI();
+    </script>
+</body>
+</html>

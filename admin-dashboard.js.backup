@@ -24,25 +24,25 @@ document.addEventListener('DOMContentLoaded', function() {
 // Verificar autenticación
 async function checkAuthentication() {
     try {
-        const response = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY, {
+        const response = await fetch('/api/auth/verify', {
             credentials: 'include'
         });
         
-        if (!response.ok || !200 === 200) {
-            window.location.href = 'login.html';
+        if (!response.ok || !response.status === 200) {
+            window.location.href = '/admin/login';
             return;
         }
         
-        // Response ya parseado por apiRequest
+        const result = await response.json();
         
         if (result.success && result.authenticated) {
             loadDashboardData();
             showUserInfo(result.data);
         } else {
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
         }
     } catch (error) {
-        window.location.href = 'login.html';
+        window.location.href = '/admin/login';
     }
 }
 
@@ -56,13 +56,13 @@ function showUserInfo(userData) {
 // Función de logout
 async function logout() {
     try {
-        const response = await apiRequest(API_CONFIG.ENDPOINTS.LOGOUT, {
+        const response = await fetch('/api/auth/logout', {
             method: 'POST',
             credentials: 'include'
         });
         
         if (response.ok) {
-            window.location.href = 'login.html';
+            window.location.href = '/admin/login';
         }
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
@@ -75,7 +75,7 @@ async function loadDashboardData() {
         console.log('Cargando datos del dashboard...');
         
         // Cargar estadísticas generales
-        const statsResponse = await apiRequest(API_CONFIG.ENDPOINTS.ADMIN_STATS, {
+        const statsResponse = await fetch('/api/estadisticas', {
             credentials: 'include'
         });
         

@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuraciones - Panel de Administración</title>
+    <link rel="icon" type="image/png" href="LOGO_UNIVERSIDAD_UNIEMPRESARIAL_VERTICAL.png">
+    <link rel="shortcut icon" type="image/png" href="LOGO_UNIVERSIDAD_UNIEMPRESARIAL_VERTICAL.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
+    <script src="color-system.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +19,18 @@
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Ocultar scrollbar pero mantener funcionalidad */
+        html, body {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* Internet Explorer 10+ */
+        }
+        
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
         }
         .glass-effect {
             backdrop-filter: blur(10px);
@@ -147,8 +164,144 @@
             color: #ffffff;
         }
         
+        /* Estilos para los selectores de color */
+        .career-color-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .career-color-item:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            border-color: #3b82f6;
+        }
+        
+        .color-picker {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: none;
+            padding: 0;
+        }
+        
+        .color-picker:hover {
+            transform: scale(1.05);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .color-picker:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .color-picker::-moz-color-swatch {
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .color-preview {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .color-preview:hover {
+            transform: scale(1.1);
+        }
+        
+        .preview-chart-container {
+            max-width: 600px;
+            margin: 0 auto;
+            height: 300px;
+        }
+        
+        .font-mono {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 11px;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        /* Animaciones suaves */
+        @keyframes colorChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .color-picker.updating {
+            animation: colorChange 0.3s ease;
+        }
+        
+        .logo-container {
+            width: 56px;
+            height: 56px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .logo-container img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
         [data-theme="dark"] .theme-option p {
             color: #b3b3b3;
+        }
+        
+        /* Estilos para configuración de colores */
+        .config-section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .career-color-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .career-color-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -156,10 +309,10 @@
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <div class="sidebar w-64 min-h-screen p-6">
-            <div class="mb-8">
-                <div class="flex items-center space-x-3 mb-2">
-                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                        <i class="fas fa-graduation-cap text-red-600 text-xl"></i>
+            <div class="p-6 border-b border-white/20 mb-8">
+                <div class="flex items-center space-x-3">
+                    <div class="logo-container">
+                        <img src="LOGO_UNIVERSIDAD_UNIEMPRESARIAL_VERTICAL.png" alt="Universidad Uniempresarial">
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-white">Tu Futuro Dual</h1>
@@ -169,15 +322,15 @@
             </div>
 
             <nav class="space-y-2">
-                <a href="/admin" class="nav-item p-3 rounded-lg text-white cursor-pointer block">
+                <a href="admin.html" class="nav-item p-3 rounded-lg text-white cursor-pointer block">
                     <i class="fas fa-chart-pie mr-3"></i>
                     Dashboard
                 </a>
-                <a href="/admin/estudiantes" class="nav-item p-3 rounded-lg text-white cursor-pointer block">
+                <a href="estudiantes.html" class="nav-item p-3 rounded-lg text-white cursor-pointer block">
                     <i class="fas fa-users mr-3"></i>
                     Estudiantes
                 </a>
-                <a href="/admin/estadisticas" class="nav-item p-3 rounded-lg text-white cursor-pointer block">
+                <a href="estadisticas.html" class="nav-item p-3 rounded-lg text-white cursor-pointer block">
                     <i class="fas fa-chart-bar mr-3"></i>
                     Estadísticas
                 </a>
@@ -220,23 +373,90 @@
 
             <!-- Main Content -->
             <main class="flex-1 p-6">
-                <!-- Contenido Principal -->
+                <!-- Configuración de Colores de Carreras -->
                 <div class="config-section p-6 rounded-2xl card-hover mb-6">
-                    <div class="text-center">
-                        <div class="mb-6">
-                            <i class="fas fa-cog text-6xl text-gray-300 mb-4"></i>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Panel de Configuraciones</h3>
-                            <p class="text-gray-600">Este panel estará disponible en futuras versiones</p>
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                            <i class="fas fa-palette mr-3 text-blue-600"></i>
+                            Colores Representativos de Carreras
+                        </h3>
+                        <p class="text-gray-600">Configura los colores que representarán cada programa académico en las estadísticas y gráficos.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="career-colors-grid">
+                        <!-- Los colores se cargarán dinámicamente -->
+                    </div>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <div class="flex space-x-3">
+                                <button onclick="resetToDefaultColors()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-undo mr-2"></i>
+                                    Restaurar Colores por Defecto
+                                </button>
+                                <button onclick="generateRandomColors()" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-random mr-2"></i>
+                                    Generar Colores Aleatorios
+                                </button>
+                            </div>
+                            <button onclick="previewChanges()" class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-medium transition-colors mr-3">
+                                <i class="fas fa-eye mr-2"></i>
+                                Vista Previa
+                            </button>
+                            <button onclick="saveCareerColors()" class="btn-primary text-white px-6 py-2 rounded-lg font-medium">
+                                <i class="fas fa-save mr-2"></i>
+                                Guardar Colores
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vista Previa de Colores -->
+                <div class="config-section p-6 rounded-2xl card-hover mb-6">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">
+                            <i class="fas fa-eye mr-3 text-green-600"></i>
+                            Vista Previa
+                        </h3>
+                        <p class="text-gray-600">Visualiza cómo se verán los colores en un gráfico de ejemplo.</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg border preview-chart-container">
+                        <canvas id="preview-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Configuraciones Adicionales -->
+                <div class="config-section p-6 rounded-2xl card-hover mb-6">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">
+                            <i class="fas fa-cog mr-3 text-gray-600"></i>
+                            Configuraciones del Sistema
+                        </h3>
+                        <p class="text-gray-600">Ajustes generales de la aplicación.</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div>
+                                <h4 class="font-medium text-gray-900">Modo Oscuro</h4>
+                                <p class="text-sm text-gray-600">Activar tema oscuro para la interfaz</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
                         </div>
                         
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div class="flex items-center">
-                                <i class="fas fa-info-circle text-blue-600 mr-3"></i>
-                                <div class="text-left">
-                                    <h4 class="font-semibold text-blue-900">Próximamente</h4>
-                                    <p class="text-blue-700 text-sm">Configuraciones avanzadas del sistema estarán disponibles aquí</p>
-                                </div>
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div>
+                                <h4 class="font-medium text-gray-900">Notificaciones</h4>
+                                <p class="text-sm text-gray-600">Recibir notificaciones del sistema</p>
                             </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="notifications-toggle" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -251,6 +471,6 @@
     </div>
 
 
-    <script src="/configuraciones.js"></script>
+    <script src="configuraciones.js"></script>
 </body>
 </html>

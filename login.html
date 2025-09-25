@@ -2,9 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Panel de Administración</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Panel de Administración</title>
+    <link rel="icon" type="image/png" href="LOGO_UNIVERSIDAD_UNIEMPRESARIAL_VERTICAL.png">
+    <link rel="shortcut icon" type="image/png" href="LOGO_UNIVERSIDAD_UNIEMPRESARIAL_VERTICAL.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -194,20 +197,14 @@
             hideError();
 
             try {
-                const response = await fetch('/api/auth/login', {
+                const result = await apiRequest(API_CONFIG.ENDPOINTS.LOGIN, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include', // Importante para las cookies de sesión
                     body: JSON.stringify({ username, password })
                 });
 
-                const result = await response.json();
-
                 if (result.success) {
                     // Login exitoso, redirigir al panel
-                    window.location.href = '/admin';
+                    window.location.href = 'admin.html';
                 } else {
                     showError(result.message || 'Error al iniciar sesión');
                 }
@@ -244,14 +241,11 @@
         // Verificar si ya está autenticado
         async function checkAuth() {
             try {
-                const response = await fetch('/api/auth/verify', {
-                    credentials: 'include'
-                });
-                const result = await response.json();
+                const result = await apiRequest(API_CONFIG.ENDPOINTS.VERIFY);
                 
                 if (result.success && result.authenticated) {
                     // Ya está autenticado, redirigir al panel
-                    window.location.href = '/admin';
+                    window.location.href = 'admin.html';
                 }
             } catch (error) {
                 console.error('Error verificando autenticación:', error);

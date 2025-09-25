@@ -33,7 +33,7 @@ async function checkAuthentication() {
         });
         
         if (!response.ok || !response.status === 200) {
-            window.location.href = '/admin/login';
+            window.location.href = 'login.html';
             return;
         }
         
@@ -43,10 +43,10 @@ async function checkAuthentication() {
             loadDashboardData();
             showUserInfo(result.data);
         } else {
-            window.location.href = '/admin/login';
+            window.location.href = 'login.html';
         }
     } catch (error) {
-        window.location.href = '/admin/login';
+        window.location.href = 'login.html';
     }
 }
 
@@ -66,7 +66,7 @@ async function logout() {
         });
         
         if (response.ok) {
-            window.location.href = '/admin/login';
+            window.location.href = 'login.html';
         }
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
