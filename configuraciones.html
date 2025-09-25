@@ -339,6 +339,14 @@
                     Configuración
                 </div>
             </nav>
+            <div class="mt-auto pt-6">
+                <div class="border-t border-white/20 pt-4">
+                    <a href="index.html" class="nav-item p-3 rounded-lg text-white cursor-pointer block">
+                        <i class="fas fa-external-link-alt mr-3"></i>
+                        Ver Aplicación
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Main Content -->
@@ -384,7 +392,87 @@
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="career-colors-grid">
-                        <!-- Los colores se cargarán dinámicamente -->
+                        <!-- Fallback estático para asegurar visibilidad inmediata -->
+                        <div class="career-color-item" data-career="0">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#1e40af"></span>Administración de Empresas (0)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#1e40af" data-career="0" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#3b82f6" data-career="0" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#dbeafe" data-career="0" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="1">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#059669"></span>Finanzas y Comercio Exterior (1)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#059669" data-career="1" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#10b981" data-career="1" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#d1fae5" data-career="1" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="2">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#7c3aed"></span>Negocios Internacionales (2)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#7c3aed" data-career="2" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#8b5cf6" data-career="2" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#ede9fe" data-career="2" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="3">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#dc2626"></span>Diseño de Producto (3)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#dc2626" data-career="3" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#ef4444" data-career="3" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#fee2e2" data-career="3" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="4">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#ea580c"></span>Marketing (4)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#ea580c" data-career="4" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#f97316" data-career="4" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#fed7aa" data-career="4" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="5">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#0891b2"></span>Ingeniería Industrial (5)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#0891b2" data-career="5" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#06b6d4" data-career="5" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#cffafe" data-career="5" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="6">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#7c2d12"></span>Ingeniería de Software (6)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#7c2d12" data-career="6" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#ea580c" data-career="6" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#fed7aa" data-career="6" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="7">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#be185d"></span>Gestión Comercial (7)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#be185d" data-career="7" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#ec4899" data-career="7" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#fce7f3" data-career="7" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="8">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#65a30d"></span>Producción Industrial (8)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#65a30d" data-career="8" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#84cc16" data-career="8" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#ecfccb" data-career="8" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
+                        <div class="career-color-item" data-career="9">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#9333ea"></span>Gestión del Talento Humano (9)</h4>
+                            <div class="space-y-3">
+                                <label class="flex justify-between text-sm">Principal <input type="color" value="#9333ea" data-career="9" data-color-type="primary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Secundario <input type="color" value="#a855f7" data-career="9" data-color-type="secondary" class="color-picker w-12 h-12 ml-2"></label>
+                                <label class="flex justify-between text-sm">Claro <input type="color" value="#f3e8ff" data-career="9" data-color-type="light" class="color-picker w-12 h-12 ml-2"></label>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mt-6 pt-6 border-t border-gray-200">
@@ -426,40 +514,7 @@
                     </div>
                 </div>
 
-                <!-- Configuraciones Adicionales -->
-                <div class="config-section p-6 rounded-2xl card-hover mb-6">
-                    <div class="mb-6">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">
-                            <i class="fas fa-cog mr-3 text-gray-600"></i>
-                            Configuraciones del Sistema
-                        </h3>
-                        <p class="text-gray-600">Ajustes generales de la aplicación.</p>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div>
-                                <h4 class="font-medium text-gray-900">Modo Oscuro</h4>
-                                <p class="text-sm text-gray-600">Activar tema oscuro para la interfaz</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div>
-                                <h4 class="font-medium text-gray-900">Notificaciones</h4>
-                                <p class="text-sm text-gray-600">Recibir notificaciones del sistema</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="notifications-toggle" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+                <!-- (Se eliminó la sección de Configuraciones del Sistema: Modo Oscuro y Notificaciones) -->
 
                 <!-- Loading -->
                 <div id="loading" class="loading p-12 text-center">
@@ -471,6 +526,26 @@
     </div>
 
 
+    <!-- Asegurar orden: primero sistema de colores, luego configuraciones -->
+    <script src="color-system.js"></script>
     <script src="configuraciones.js"></script>
+    <script>
+    // Fallback adicional: si por alguna razón no se renderizó la grilla en 800ms, forzar render.
+    setTimeout(() => {
+        try {
+            const grid = document.getElementById('career-colors-grid');
+            if (grid && grid.children.length === 0) {
+                console.warn('[fallback-inline] Forzando render de grilla de colores');
+                if (typeof initializeConfigurations === 'function') {
+                    initializeConfigurations();
+                } else if (typeof renderCareerColorsGrid === 'function') {
+                    renderCareerColorsGrid();
+                }
+            }
+        } catch (e) {
+            console.error('[fallback-inline] Error forzando render:', e);
+        }
+    }, 800);
+    </script>
 </body>
 </html>

@@ -1,18 +1,10 @@
 // ==================== CONFIGURACIONES DE CARRERAS ====================
 
-// Nombres de los arquetipos y sus colores por defecto
-const DEFAULT_CAREER_COLORS = {
-    0: { name: "Administración de Empresas", primary: '#1e40af', secondary: '#3b82f6', light: '#dbeafe' },
-    1: { name: "Finanzas y Comercio Exterior", primary: '#059669', secondary: '#10b981', light: '#d1fae5' },
-    2: { name: "Negocios Internacionales", primary: '#7c3aed', secondary: '#8b5cf6', light: '#ede9fe' },
-    3: { name: "Diseño de Producto", primary: '#dc2626', secondary: '#ef4444', light: '#fee2e2' },
-    4: { name: "Marketing", primary: '#ea580c', secondary: '#f97316', light: '#fed7aa' },
-    5: { name: "Ingeniería Industrial", primary: '#0891b2', secondary: '#06b6d4', light: '#cffafe' },
-    6: { name: "Ingeniería de Software", primary: '#7c2d12', secondary: '#ea580c', light: '#fed7aa' },
-    7: { name: "Gestión Comercial", primary: '#be185d', secondary: '#ec4899', light: '#fce7f3' },
-    8: { name: "Producción Industrial", primary: '#65a30d', secondary: '#84cc16', light: '#ecfccb' },
-    9: { name: "Gestión del Talento Humano", primary: '#9333ea', secondary: '#a855f7', light: '#f3e8ff' }
-};
+// Usar el DEFAULT_CAREER_COLORS ya definido en color-system.js (debe cargarse antes en el HTML)
+if (typeof DEFAULT_CAREER_COLORS === 'undefined') {
+    console.error('DEFAULT_CAREER_COLORS no está definido. Asegúrate de incluir color-system.js antes de configuraciones.js');
+    window.DEFAULT_CAREER_COLORS = {}; // Evitar más errores
+}
 
 let currentCareerColors = { ...DEFAULT_CAREER_COLORS };
 let previewChart = null;
@@ -20,6 +12,8 @@ let previewChart = null;
 // Verificar autenticación al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM cargado, iniciando aplicación...');
+    // Marca global para detectar que el script se ejecutó
+    window.__CONFIG_PANEL_SCRIPT_LOADED__ = true;
     
     // Cargar siempre las configuraciones locales primero
     setTimeout(() => {
@@ -77,8 +71,21 @@ function initializeConfigurations() {
     }
     
     // Renderizar inmediatamente
-    console.log('Renderizando interfaz...');
-    renderCareerColorsGrid();
+    console.log('Sincronizando inputs existentes...');
+    renderCareerColorsGrid(); // Esta función ahora respeta fallback estático
+
+    // Aplicar valores guardados a los inputs si existen
+    setTimeout(() => {
+        const grid = document.getElementById('career-colors-grid');
+        if (grid) {
+            Object.keys(currentCareerColors).forEach(key => {
+                ['primary','secondary','light'].forEach(type => {
+                    const input = grid.querySelector(`input[data-career="${key}"][data-color-type="${type}"]`);
+                    if (input) input.value = currentCareerColors[key][type];
+                });
+            });
+        }
+    }, 50);
     
     // Renderizar gráfico de vista previa
     try {
@@ -87,12 +94,7 @@ function initializeConfigurations() {
         console.log('Error al renderizar gráfico de vista previa:', e);
     }
     
-    // Configurar toggles
-    try {
-        setupToggles();
-    } catch (e) {
-        console.log('Error al configurar toggles:', e);
-    }
+    // (Se eliminó configuración de toggles de Modo Oscuro y Notificaciones)
     
     // Ocultar loading
     showLoading(false);
@@ -109,8 +111,21 @@ function renderCareerColorsGrid() {
         console.error('No se encontró el elemento career-colors-grid');
         return;
     }
-    
-    console.log('Grid encontrado:', grid);
+    // Si ya existen inputs (fallback estático), solo sincronizar valores y listeners
+    const existingPickers = grid.querySelectorAll('input.color-picker');
+    if (existingPickers.length > 0 && grid.children.length >= 9) {
+        console.log('Detectado fallback estático, actualizando valores sin regenerar');
+        Object.keys(currentCareerColors).forEach(key => {
+            const career = currentCareerColors[key];
+            ['primary','secondary','light'].forEach(type => {
+                const input = grid.querySelector(`input[data-career="${key}"][data-color-type="${type}"]`);
+                if (input) input.value = career[type];
+            });
+        });
+        addColorPickerListeners();
+        return;
+    }
+    console.log('Grid encontrado, regenerando dinámicamente');
     grid.innerHTML = '';
     
     console.log('Procesando colores de carreras:', currentCareerColors);
@@ -190,6 +205,25 @@ function renderCareerColorsGrid() {
     console.log('Grilla renderizada, agregando event listeners...');
     addColorPickerListeners();
     console.log('Event listeners agregados');
+
+    // Fallback de verificación: si después de 100ms no hay inputs, forzar inserción mínima
+    setTimeout(() => {
+        if (grid.querySelectorAll('input[type="color"]').length === 0) {
+            console.warn('Fallback activado: no se encontraron inputs de color tras render inicial. Insertando versión mínima.');
+            grid.innerHTML = Object.keys(currentCareerColors).map(key => {
+                const c = currentCareerColors[key];
+                return `<div class="p-4 border rounded mb-3">`+
+                       `<p class='text-sm font-semibold mb-2'>${c.name}</p>`+
+                       `<div class='flex gap-4'>`+
+                       `<label class='flex flex-col text-xs'>Principal <input data-career='${key}' data-color-type='primary' type='color' value='${c.primary}' class='color-picker w-10 h-10 mt-1'></label>`+
+                       `<label class='flex flex-col text-xs'>Secundario <input data-career='${key}' data-color-type='secondary' type='color' value='${c.secondary}' class='color-picker w-10 h-10 mt-1'></label>`+
+                       `<label class='flex flex-col text-xs'>Claro <input data-career='${key}' data-color-type='light' type='color' value='${c.light}' class='color-picker w-10 h-10 mt-1'></label>`+
+                       `</div>`+
+                       `</div>`;
+            }).join('');
+            addColorPickerListeners();
+        }
+    }, 120);
 }
 
 // Agregar event listeners a los selectores de color
@@ -210,6 +244,13 @@ function addColorPickerListeners() {
             const newColor = this.value;
             
             updateCareerColor(careerKey, colorType, newColor, this);
+            // Guardado rápido silencioso
+            try {
+                const domColors = collectColorsFromDOM();
+                if (domColors) {
+                    localStorage.setItem('careerColors', JSON.stringify(domColors));
+                }
+            } catch(e) { console.warn('Auto-save falló', e);}    
         });
     });
 }
@@ -393,24 +434,22 @@ function previewChanges() {
 async function saveCareerColors() {
     try {
         showLoading(true);
-        
-        // Actualizar el sistema global de colores
-        if (typeof updateCareerColors === 'function') {
-            updateCareerColors(currentCareerColors);
-        } else {
-            // Fallback: guardar directamente en localStorage
-            localStorage.setItem('careerColors', JSON.stringify(currentCareerColors));
+        // 1. Recolectar siempre los valores actuales del DOM (por si algún listener no disparó)
+        const domColors = collectColorsFromDOM();
+        if (domColors) {
+            currentCareerColors = domColors;
         }
-        
-        // Aquí se podría implementar el guardado en la API externa si fuera necesario
-        // const result = await apiRequest('/api/config/career-colors', {
-        //     method: 'POST',
-        //     credentials: 'include',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ colors: currentCareerColors })
-        // });
-        
-        showSuccess('Colores de carreras guardados exitosamente. Los cambios se aplicarán en todas las estadísticas.');
+
+        // 2. Guardar en localStorage directamente (fuente de verdad al recargar)
+        localStorage.setItem('careerColors', JSON.stringify(currentCareerColors));
+
+        // 3. Propagar al sistema global si existe
+        if (typeof updateCareerColors === 'function') {
+            try { updateCareerColors(currentCareerColors); } catch(e){ console.warn('updateCareerColors falló', e);}    
+        }
+
+        console.log('[saveCareerColors] Guardado ->', currentCareerColors);
+        showSuccess('Colores guardados (persistencia local)');
         
     } catch (error) {
         console.error('Error guardando colores:', error);
@@ -419,6 +458,8 @@ async function saveCareerColors() {
         showLoading(false);
     }
 }
+// Exponer función
+window.saveCareerColors = saveCareerColors;
 
 // Restaurar colores por defecto
 function resetToDefaultColors() {
@@ -522,46 +563,7 @@ function createConfirmModal(title, message, confirmText, icon, onConfirm) {
 }
 
 // Configurar toggles
-function setupToggles() {
-    // Toggle de modo oscuro
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
-    if (darkModeToggle) {
-        // Cargar estado guardado
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        darkModeToggle.checked = isDarkMode;
-        
-        // Aplicar tema
-        if (isDarkMode) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
-        
-        darkModeToggle.addEventListener('change', function() {
-            const isDark = this.checked;
-            if (isDark) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-            }
-            localStorage.setItem('darkMode', isDark.toString());
-        });
-    }
-    
-    // Toggle de notificaciones
-    const notificationsToggle = document.getElementById('notifications-toggle');
-    if (notificationsToggle) {
-        const notificationsEnabled = localStorage.getItem('notificationsEnabled') !== 'false';
-        notificationsToggle.checked = notificationsEnabled;
-        
-        notificationsToggle.addEventListener('change', function() {
-            localStorage.setItem('notificationsEnabled', this.checked.toString());
-            if (this.checked) {
-                showSuccess('Notificaciones activadas');
-            } else {
-                showSuccess('Notificaciones desactivadas');
-            }
-        });
-    }
-}
+// (Función setupToggles eliminada junto con los toggles del HTML)
 
 // ==================== FUNCIONES AUXILIARES ====================
 
@@ -652,3 +654,60 @@ setTimeout(() => {
         loadColorsDirectly();
     }
 }, 3000);
+
+// Herramientas de depuración
+window.__debugCareerColors = function() {
+    console.log('DEFAULT_CAREER_COLORS:', DEFAULT_CAREER_COLORS);
+    console.log('currentCareerColors:', currentCareerColors);
+    const grid = document.getElementById('career-colors-grid');
+    console.log('Grid existe:', !!grid, 'nodos hijos:', grid ? grid.children.length : 'N/A');
+};
+
+window.__forceRenderCareerColors = function() {
+    console.log('Forzando render manual de grilla');
+    try { renderCareerColorsGrid(); } catch(e){ console.error(e);} 
+};
+
+// Recolectar colores directamente del DOM
+function collectColorsFromDOM() {
+    const grid = document.getElementById('career-colors-grid');
+    if (!grid) return null;
+    const result = {};
+    try {
+        Object.keys(DEFAULT_CAREER_COLORS).forEach(key => {
+            const primaryInput = grid.querySelector(`input[data-career="${key}"][data-color-type="primary"]`);
+            const secondaryInput = grid.querySelector(`input[data-career="${key}"][data-color-type="secondary"]`);
+            const lightInput = grid.querySelector(`input[data-career="${key}"][data-color-type="light"]`);
+            if (primaryInput && secondaryInput && lightInput) {
+                result[key] = {
+                    name: DEFAULT_CAREER_COLORS[key].name,
+                    primary: primaryInput.value,
+                    secondary: secondaryInput.value,
+                    light: lightInput.value
+                };
+            }
+        });
+        return result;
+    } catch(e){
+        console.error('Error recolectando colores del DOM', e);
+        return null;
+    }
+}
+window.collectColorsFromDOM = collectColorsFromDOM;
+
+// Guardar todas las configuraciones (botón header)
+function saveAllSettings() {
+    console.log('Guardando todas las configuraciones...');
+    try {
+        // Guardar colores
+        if (typeof saveCareerColors === 'function') {
+            saveCareerColors();
+        }
+    // (Ya no hay toggles que guardar)
+        showSuccess('Configuraciones guardadas');
+    } catch (e) {
+        console.error('Error guardando configuraciones:', e);
+        showError('Error al guardar configuraciones');
+    }
+}
+window.saveAllSettings = saveAllSettings;
